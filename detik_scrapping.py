@@ -33,7 +33,87 @@ def get_link_use_bs(link):
         print("Error: No Such Link Box Element")
     return links
 
-def get_first_and_second_news_page_also_photo_using_bs4(links, numbers):
+def get_news_use_bs(links, numbers):
+    news = []
+    for link in links:
+        response = requests.get(link).content
+        time.sleep(1)
+        soup = bs(response)
+
+        # title
+        try:
+            news_title = soup.find(class_="detail__title").get_text(strip=True)
+        except:
+            print("Use second algorithm to get news title")            
+            try:
+                news_title = soup.h1.get_text()
+            except:
+                news_title = None
+                print("Error: No such news title element")
+
+        # date
+        try:
+            news_date  = soup.find(class_="detail__date").get_text()
+        except:
+            print("Use second algorithm to get news date")            
+            try:
+                news_date = soup.find(class_="date").get_text()
+            except:
+                news_date = None
+                print("Error: No such news date element")
+
+        # body
+        try:
+            news_raw   = soup.find(class_="detail__body-text itp_bodycontent")
+            news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+            news_body_head  = soup.strong.get_text()
+            news_body_bottom  = "\n".join(news_body_raw)
+            news_body = news_body_head + " - " + news_body_bottom
+            try:
+                news_body_add_1 = news_raw.find("h2").get_text()
+                news_body = news_body + "\n" + news_body_add_1
+                try:
+                    news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
+                    news_body_add_2  = "\n".join(news_body_add_2)
+                    news_body = news_body + "\n" + news_body_add_2
+                except:
+                    pass
+            except:
+                pass
+            if news_body == " - ":
+                news_body = None
+            else:
+                pass
+        except:
+            print("Use second algorithm to get news body")  
+            try:
+                news_raw = soup.find(class_="itp_bodycontent detail_text group")
+                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+                news_body_head = soup.strong.get_text()
+                news_body_bottom = "\n".join(news_body_raw)
+                news_body = news_body_head + " - " + news_body_bottom
+            except:
+                try:
+                    print("Use third algorithm to get news body")
+                    news_raw = soup.find(id="detikdetailtext")
+                    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+                    try:
+                        news_body_head = news_raw.b.get_text()
+                    except:
+                        news_body_head = news_raw.strong.get_text()
+                    news_body_bottom = "\n".join(news_body_raw)
+                    news_body = news_body_head + " - " + news_body_bottom
+                except:
+                    news_body = None
+                    print("Error: No such news body element")
+            
+        news.append({"judul":news_title, "tanggal":news_date, "isi":news_body})
+        numbers += 1
+        print(f"News: {numbers}\n{news_title}\n")
+        
+    return news, numbers
+
+def get_news_and_photo_using_bs(links, numbers):
     news = []
     for link in links:
         response = requests.get(link).content
