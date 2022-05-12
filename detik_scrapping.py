@@ -1,4 +1,6 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium import webdriver
 import requests
 from bs4 import BeautifulSoup as bs
 import time
@@ -18,27 +20,12 @@ def get_link_use_selenium(driver):
         print("Error: No Such Link Box Element")
     return links
 
-def get_link_use_bs(link):
-    """
-    Only get for news link, not photo or 20detiknews
-    """
-    try:
-        response = requests.get(link).content
-        soup = bs(response)
-        news_body_list = soup.find(class_="list media_rows list-berita")
-        links = []
-        for news_link in news_body_list.find_all("a"):
-            links.append(news_link.get("href"))
-    except:
-        print("Error: No Such Link Box Element")
-    return links
-
 def get_news_use_bs(links, numbers):
     news = []
     for link in links:
         response = requests.get(link).content
         time.sleep(1)
-        soup = bs(response)
+        soup = bs(response, "html.parser")
         try:
             lanjutan = soup.find(attrs= {"dtr-evt": "selanjutnya"}).get_text(strip=True)
             print(f"Berita ada {lanjutan}")
@@ -79,7 +66,7 @@ def get_news_use_bs(links, numbers):
             try:
                 link_second = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get("href")
                 response_second = requests.get(link_second).content
-                soup_second = bs(response_second)
+                soup_second = bs(response_second, "html.parser")
             except:
                 print("Error: Cannot open second page")
 
@@ -167,7 +154,7 @@ def get_news_and_photo_using_bs(links, numbers):
     for link in links:
         response = requests.get(link).content
         time.sleep(1)
-        soup = bs(response)
+        soup = bs(response, "html.parser")
         try:
             lanjutan = soup.find(attrs= {"dtr-evt": "selanjutnya"}).get_text(strip=True)
             print(f"Berita ada {lanjutan}")
@@ -208,7 +195,7 @@ def get_news_and_photo_using_bs(links, numbers):
             try:
                 link_second = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get("href")
                 response_second = requests.get(link_second).content
-                soup_second = bs(response_second)
+                soup_second = bs(response_second, "html.parser")
             except:
                 print("Error: Cannot open second page")
 
@@ -300,3 +287,126 @@ def get_news_and_photo_using_bs(links, numbers):
         numbers += 1
         print(f"News: {numbers}\n{news_title}\n")
     return news, numbers
+
+def news_use_keyword():
+    keyword = input("Looking For? ")
+    end_page = int(input("Search Until Page: "))
+    number = 0
+    all_news = []
+
+    driver = webdriver.Edge()
+    driver.get("https://www.detik.com")
+
+    search_box = driver.find_element(By.NAME, "query")
+    search_box.send_keys(keyword)
+    search_box.send_keys(Keys.RETURN)
+
+    time.sleep(1)
+    links = get_link_use_selenium(driver=driver)
+    news, number = get_news_use_bs(links=links, numbers=number)
+    all_news.extend(news)
+
+    if end_page > 1:
+        for page in range(2, end_page+1):
+            driver.find_element(By.LINK_TEXT, str(page)).click()
+            time.sleep(1)
+            links = get_link_use_selenium(driver=driver)
+            news, number = get_news_use_bs(links=links, numbers=number)
+            all_news.extend(news)
+    else:
+        pass
+
+    print("Done")
+    driver.quit()
+
+    return all_news
+
+def news_use_keyword_include_photo():
+    keyword = input("Looking For? ")
+    end_page = int(input("Search Until Page: "))
+    number = 0
+    all_news = []
+
+    driver = webdriver.Edge()
+    driver.get("https://www.detik.com")
+
+    search_box = driver.find_element(By.NAME, "query")
+    search_box.send_keys(keyword)
+    search_box.send_keys(Keys.RETURN)
+
+    time.sleep(1)
+    links = get_link_use_selenium(driver=driver)
+    news, number = get_news_and_photo_using_bs(links=links, numbers=number)
+    all_news.extend(news)
+
+    if end_page > 1:
+        for page in range(2, end_page+1):
+            driver.find_element(By.LINK_TEXT, str(page)).click()
+            time.sleep(1)
+            links = get_link_use_selenium(driver=driver)
+            news, number = get_news_and_photo_using_bs(links=links, numbers=number)
+            all_news.extend(news)
+    else:
+        pass
+
+    print("Done")
+    driver.quit()
+    return all_news
+    
+def news_use_tag():
+    tag_name = input("Insert Tag: ")
+    end_page = int(input("Search Until Page: "))
+    numbers = 0
+    all_news = []
+    link = "https://www.detik.com/tag/" + tag_name.replace(" ", "-")
+
+    driver = webdriver.Edge()
+    driver.get(link)
+
+    time.sleep(1)
+    links = get_link_use_selenium(driver=driver)
+    news, numbers = get_news_use_bs(links=links, numbers=numbers)
+    all_news.extend(news)
+
+    if end_page > 1:
+        for page in range(2, end_page+1):
+            driver.find_element(By.LINK_TEXT, str(page)).click()
+            time.sleep(1)
+            links = get_link_use_selenium(driver=driver)
+            news, numbers = get_news_use_bs(links=links, numbers=numbers)
+            all_news.extend(news)
+    else:
+        pass
+
+    print("Done")
+    driver.quit()
+    return all_news
+
+def news_use_tag_include_photo():
+    tag_name = input("Insert Tag: ")
+    end_page = int(input("Search Until Page: "))
+    numbers = 0
+    all_news = []
+    link = "https://www.detik.com/tag/" + tag_name.replace(" ", "-")
+
+    driver = webdriver.Edge()
+    driver.get(link)
+
+    time.sleep(1)
+    links = get_link_use_selenium(driver=driver)
+    news, numbers = get_news_and_photo_using_bs(links=links, numbers=numbers)
+    all_news.extend(news)
+
+    if end_page > 1:
+        for page in range(2, end_page+1):
+            driver.find_element(By.LINK_TEXT, str(page)).click()
+            time.sleep(1)
+            links = get_link_use_selenium(driver=driver)
+            news, numbers = get_news_and_photo_using_bs(links=links, numbers=numbers)
+            all_news.extend(news)
+    else:
+        pass
+
+    print("Done")
+    driver.quit()
+    return all_news
