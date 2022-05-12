@@ -20,130 +20,210 @@ def get_link_use_selenium(driver):
         print("Error: No Such Link Box Element")
     return links
 
+def algorithm_news_title(soup):
+    try:
+        news_title = soup.find(class_="detail__title").get_text(strip=True)
+    except:
+        try:
+            news_title = soup.h1.get_text()
+        except:
+            news_title = None
+            print("Error: No such news title element")
+    return news_title
+
+def algorithm_news_date(soup):
+    try:
+        news_date  = soup.find(class_="detail__date").get_text()
+    except:
+        try:
+            news_date = soup.find(class_="date").get_text()
+        except:
+            news_date = None
+            print("Error: No such news date element")
+    return news_date
+
+def first_algorithm_news_body(soup):
+    news_raw   = soup.find(class_="detail__body-text itp_bodycontent")
+    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+    news_body_head  = soup.strong.get_text()
+    news_body_bottom  = "\n".join(news_body_raw)
+    news_body = news_body_head + " - " + news_body_bottom
+    # if theres some add in bottom
+    try:
+        news_body_add_1 = news_raw.find("h2").get_text()
+        news_body = news_body + "\n" + news_body_add_1
+        try:
+            news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
+            news_body_add_2  = "\n".join(news_body_add_2)
+            news_body = news_body + "\n" + news_body_add_2
+        except:
+            pass
+    except:
+        pass
+    if news_body == " - ":
+        news_body = None
+    else:
+        pass
+    return news_body
+
+def second_algorithm_news_body(soup):
+    news_raw = soup.find(class_="itp_bodycontent detail_text group")
+    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+    news_body_head = soup.strong.get_text()
+    news_body_bottom = "\n".join(news_body_raw)
+    news_body = news_body_head + " - " + news_body_bottom
+    # if theres some add in bottom
+    try:
+        news_body_add_1 = news_raw.find("h2").get_text()
+        news_body = news_body + "\n" + news_body_add_1
+        try:
+            news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
+            news_body_add_2  = "\n".join(news_body_add_2)
+            news_body = news_body + "\n" + news_body_add_2
+        except:
+            pass
+    except:
+        pass
+    if news_body == " - ":
+        news_body = None
+    else:
+        pass
+    return news_body
+
+def third_algorithm_news_body(soup):
+    news_raw = soup.find(id="detikdetailtext")
+    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+    try:
+        news_body_head = news_raw.b.get_text()
+    except:
+        news_body_head = news_raw.strong.get_text()
+    news_body_bottom = "\n".join(news_body_raw)
+    news_body = news_body_head + " - " + news_body_bottom
+    # if theres some add in bottom
+    try:
+        news_body_add_1 = news_raw.find("h2").get_text()
+        news_body = news_body + "\n" + news_body_add_1
+        try:
+            news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
+            news_body_add_2  = "\n".join(news_body_add_2)
+            news_body = news_body + "\n" + news_body_add_2
+        except:
+            pass
+    except:
+        pass
+    if news_body == " - ":
+        news_body = None
+    else:
+        pass
+    return news_body
+
+def forth_algorithm_news_body(soup):
+    news_body_head = soup.find("p").get_text()
+    news_body_bottom = soup.find("figcaption").get_text()
+    news_body = news_body_head + " " +news_body_bottom
+    return news_body
+
+def fifth_algorithm_news_body(soup):
+    news_body = soup.find("p").get_text()
+    return news_body
+
+def first_algorithm_news_body_second(soup_second, news_body):
+    news_raw   = soup_second.find(class_="detail__body-text itp_bodycontent")
+    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+    news_body_second  = "\n".join(news_body_raw)
+    news_body = news_body + "\n" + "Halaman 2" +"\n" + news_body_second
+    return news_body
+
+def second_algorithm_news_body_second(soup_second, news_body):
+    news_raw   = soup_second.find(id="detikdetailtext")
+    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
+    news_body_second  = "\n".join(news_body_raw)
+    news_body = news_body + "\n" + "Halaman 2" +"\n" + news_body_second
+    return news_body
+
 def get_news_use_bs(links, numbers):
     news = []
     for link in links:
         response = requests.get(link).content
         time.sleep(1)
         soup = bs(response, "html.parser")
+        # for news more than one page
         try:
-            lanjutan = soup.find(attrs= {"dtr-evt": "selanjutnya"}).get_text(strip=True)
+            lanjutan = soup.find(class_="btn btn--red-base btn--sm mgb-24").get_text(strip=True)
             print(f"Berita ada {lanjutan}")
-            # title
+            news_title = algorithm_news_title(soup=soup)
+            news_date = algorithm_news_date(soup=soup)
+            # body 1
             try:
-                news_title = soup.find(class_="detail__title").get_text(strip=True)
+                news_body = first_algorithm_news_body(soup=soup)
             except:
-                news_title = None
-                print("Error: No such news title element")
-            # date
-            try:
-                news_date  = soup.find(class_="detail__date").get_text()
-            except:
-                news_date = None
-                print("Error: No such news date element")
-            # body
-            try:
-                news_raw   = soup.find(class_="detail__body-text itp_bodycontent")
-                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                news_body_head  = soup.strong.get_text()
-                news_body_bottom  = "\n".join(news_body_raw)
-                news_body = news_body_head + " - " + news_body_bottom
                 try:
-                    news_body_add_1 = news_raw.find("h2").get_text()
-                    news_body = news_body + "\n" + news_body_add_1
-                    try:
-                        news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
-                        news_body_add_2  = "\n".join(news_body_add_2)
-                        news_body = news_body + "\n" + news_body_add_2
-                    except:
-                        pass
-                except:
-                    pass
-            except:
-                news_body = None
-                print("Error: No such news body element")
-            # body 2
-            try:
-                link_second = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get("href")
-                response_second = requests.get(link_second).content
-                soup_second = bs(response_second, "html.parser")
-            except:
-                print("Error: Cannot open second page")
-
-            try:
-                news_raw   = soup_second.find(class_="detail__body-text itp_bodycontent")
-                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                news_body_second  = "\n".join(news_body_raw)
-                news_body = news_body + "\n" + "Halaman 2" +"\n" + news_body_second
-            except:
-                print("Error: No such second news body element")
-            
-        except:
-            # title
-            try:
-                news_title = soup.find(class_="detail__title").get_text(strip=True)
-            except:
-                print("Use second algorithm to get news title")            
-                try:
-                    news_title = soup.h1.get_text()
-                except:
-                    news_title = None
-                    print("Error: No such news title element")
-            # date
-            try:
-                news_date  = soup.find(class_="detail__date").get_text()
-            except:
-                print("Use second algorithm to get news date")            
-                try:
-                    news_date = soup.find(class_="date").get_text()
-                except:
-                    news_date = None
-                    print("Error: No such news date element")
-            # body
-            try:
-                news_raw   = soup.find(class_="detail__body-text itp_bodycontent")
-                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                news_body_head  = soup.strong.get_text()
-                news_body_bottom  = "\n".join(news_body_raw)
-                news_body = news_body_head + " - " + news_body_bottom
-                try:
-                    news_body_add_1 = news_raw.find("h2").get_text()
-                    news_body = news_body + "\n" + news_body_add_1
-                    try:
-                        news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
-                        news_body_add_2  = "\n".join(news_body_add_2)
-                        news_body = news_body + "\n" + news_body_add_2
-                    except:
-                        pass
-                except:
-                    pass
-                if news_body == " - ":
-                    news_body = None
-                else:
-                    pass
-            except:
-                print("Use second algorithm to get news body")  
-                try:
-                    news_raw = soup.find(class_="itp_bodycontent detail_text group")
-                    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                    news_body_head = soup.strong.get_text()
-                    news_body_bottom = "\n".join(news_body_raw)
-                    news_body = news_body_head + " - " + news_body_bottom
+                    news_body = second_algorithm_news_body(soup=soup)
                 except:
                     try:
-                        print("Use third algorithm to get news body")
-                        news_raw = soup.find(id="detikdetailtext")
-                        news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                        try:
-                            news_body_head = news_raw.b.get_text()
-                        except:
-                            news_body_head = news_raw.strong.get_text()
-                        news_body_bottom = "\n".join(news_body_raw)
-                        news_body = news_body_head + " - " + news_body_bottom
+                        news_body = third_algorithm_news_body(soup=soup)
                     except:
                         news_body = None
                         print("Error: No such news body element")
+            # body 2
+            try:
+                link_second = soup.find(class_="btn btn--red-base btn--sm mgb-24").get("href")
+                response_second = requests.get(link_second).content
+                soup_second = bs(response_second, "html.parser")
+                try:
+                    news_body = first_algorithm_news_body_second(soup_second=soup_second, news_body=news_body)
+                except:
+                    print("Error: No such second news body element")
+            except:
+                print("Error: Cannot get second page link")
                 
+        except:
+            # algorithm 2 to get second news
+            try:
+                lanjutan = soup.find(class_="ap-view").get_text()
+                print(f"Berita ada {lanjutan}: Use Second Algorithm")
+
+                news_title = algorithm_news_title(soup=soup)
+                news_date = algorithm_news_date(soup=soup)
+                # body 1
+                try:
+                    news_body = first_algorithm_news_body(soup=soup)
+                except:
+                    try:
+                        news_body = second_algorithm_news_body(soup=soup)
+                    except:
+                        try:
+                            news_body = third_algorithm_news_body(soup=soup)
+                        except:
+                            news_body = None
+                            print("Error: No such news body element")
+                # body 2
+                try:
+                    link_second = soup.find("a", class_="ap-view").get("href")
+                    response_second = requests.get(link_second).content
+                    soup_second = bs(response_second, "html.parser")
+                    try:
+                        news_body = second_algorithm_news_body_second(soup_second=soup_second, news_body=news_body)
+                    except:
+                        print("Error: No such second news body element")
+                except:
+                    print("Error: Cannot get second page link")
+
+            except:
+                # for news that just one page
+                news_title = algorithm_news_title(soup=soup)
+                news_date = algorithm_news_date(soup=soup)
+                try:
+                    news_body = first_algorithm_news_body(soup=soup)
+                except:
+                    try:
+                        news_body = second_algorithm_news_body(soup=soup)
+                    except:
+                        try:
+                            news_body = third_algorithm_news_body(soup=soup)
+                        except:
+                            news_body = None
+                            print("Error: No such news body element")
         news.append({"judul":news_title, "tanggal":news_date, "isi":news_body})
         numbers += 1
         print(f"News: {numbers}\n{news_title}\n")
@@ -155,133 +235,89 @@ def get_news_and_photo_using_bs(links, numbers):
         response = requests.get(link).content
         time.sleep(1)
         soup = bs(response, "html.parser")
+        # for news more than one page
         try:
-            lanjutan = soup.find(attrs= {"dtr-evt": "selanjutnya"}).get_text(strip=True)
+            lanjutan = soup.find(class_="btn btn--red-base btn--sm mgb-24").get_text(strip=True)
             print(f"Berita ada {lanjutan}")
-            # title
+            news_title = algorithm_news_title(soup=soup)
+            news_date = algorithm_news_date(soup=soup)
+            # body 1
             try:
-                news_title = soup.find(class_="detail__title").get_text(strip=True)
+                news_body = first_algorithm_news_body(soup=soup)
             except:
-                news_title = None
-                print("Error: No such news title element")
-            # date
-            try:
-                news_date  = soup.find(class_="detail__date").get_text()
-            except:
-                news_date = None
-                print("Error: No such news date element")
-            # body
-            try:
-                news_raw   = soup.find(class_="detail__body-text itp_bodycontent")
-                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                news_body_head  = soup.strong.get_text()
-                news_body_bottom  = "\n".join(news_body_raw)
-                news_body = news_body_head + " - " + news_body_bottom
                 try:
-                    news_body_add_1 = news_raw.find("h2").get_text()
-                    news_body = news_body + "\n" + news_body_add_1
-                    try:
-                        news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
-                        news_body_add_2  = "\n".join(news_body_add_2)
-                        news_body = news_body + "\n" + news_body_add_2
-                    except:
-                        pass
+                    news_body = second_algorithm_news_body(soup=soup)
                 except:
-                    pass
-            except:
-                news_body = None
-                print("Error: No such news body element")
+                    try:
+                        news_body = third_algorithm_news_body(soup=soup)
+                    except:
+                        news_body = None
+                        print("Error: No such news body element")
             # body 2
             try:
-                link_second = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get("href")
+                link_second = soup.find(class_="btn btn--red-base btn--sm mgb-24").get("href")
                 response_second = requests.get(link_second).content
                 soup_second = bs(response_second, "html.parser")
+                try:
+                    news_body = first_algorithm_news_body_second(soup_second=soup_second, news_body=news_body)
+                except:
+                    print("Error: No such second news body element")
             except:
-                print("Error: Cannot open second page")
-
-            try:
-                news_raw   = soup_second.find(class_="detail__body-text itp_bodycontent")
-                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                news_body_second  = "\n".join(news_body_raw)
-                news_body = news_body + "\n" + "Halaman 2" +"\n" + news_body_second
-            except:
-                print("Error: No such second news body element")
+                print("Error: Cannot get second page link")
             
         except:
-            # title
+            # algorithm 2 to get second news
             try:
-                news_title = soup.find(class_="detail__title").get_text(strip=True)
-            except:
-                print("Use second algorithm to get news title")            
+                lanjutan = soup.find(class_="ap-view").get_text()
+                print(f"Berita ada {lanjutan}: Use Second Algorithm")
+
+                news_title = algorithm_news_title(soup=soup)
+                news_date = algorithm_news_date(soup=soup)
+                # body 1
                 try:
-                    news_title = soup.h1.get_text()
+                    news_body = first_algorithm_news_body(soup=soup)
                 except:
-                    news_title = None
-                    print("Error: No such news title element")
-            # date
-            try:
-                news_date  = soup.find(class_="detail__date").get_text()
-            except:
-                print("Use second algorithm to get news date")            
-                try:
-                    news_date = soup.find(class_="date").get_text()
-                except:
-                    news_date = None
-                    print("Error: No such news date element")
-            # body
-            try:
-                news_raw   = soup.find(class_="detail__body-text itp_bodycontent")
-                news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                news_body_head  = soup.strong.get_text()
-                news_body_bottom  = "\n".join(news_body_raw)
-                news_body = news_body_head + " - " + news_body_bottom
-                try:
-                    news_body_add_1 = news_raw.find("h2").get_text()
-                    news_body = news_body + "\n" + news_body_add_1
                     try:
-                        news_body_add_2 = [body.get_text() for body in news_raw.find("ul")]
-                        news_body_add_2  = "\n".join(news_body_add_2)
-                        news_body = news_body + "\n" + news_body_add_2
+                        news_body = second_algorithm_news_body(soup=soup)
                     except:
-                        pass
-                except:
-                    pass
-                if news_body == " - ":
-                    news_body = None
-                else:
-                    pass
-            except:
-                print("Use second algorithm to get news body")  
+                        try:
+                            news_body = third_algorithm_news_body(soup=soup)
+                        except:
+                            news_body = None
+                            print("Error: No such news body element")
+                # body 2
                 try:
-                    news_raw = soup.find(class_="itp_bodycontent detail_text group")
-                    news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                    news_body_head = soup.strong.get_text()
-                    news_body_bottom = "\n".join(news_body_raw)
-                    news_body = news_body_head + " - " + news_body_bottom
-                except:
-                    print("Use third algorithm to get news body")
+                    link_second = soup.find("a", class_="ap-view").get("href")
+                    response_second = requests.get(link_second).content
+                    soup_second = bs(response_second, "html.parser")
                     try:
-                        news_raw = soup.find(id="detikdetailtext")
-                        news_body_raw = [body.get_text() for body in news_raw.find_all("p")]
-                        try:
-                            news_body_head = news_raw.b.get_text()
-                        except:
-                            news_body_head = news_raw.strong.get_text()
-                        news_body_bottom = "\n".join(news_body_raw)
-                        news_body = news_body_head + " - " + news_body_bottom
+                        news_body = second_algorithm_news_body_second(soup_second=soup_second, news_body=news_body)
                     except:
-                        print("Use Forth algorithm to get news body")
+                        print("Error: No such second news body element")
+                except:
+                    print("Error: Cannot get second page link")
+            
+            except:
+                # for news that just one page
+                news_title = algorithm_news_title(soup=soup)
+                news_date = algorithm_news_date(soup=soup)
+                try:
+                    news_body = first_algorithm_news_body(soup=soup)
+                except:
+                    try:
+                        news_body = second_algorithm_news_body(soup=soup)
+                    except:
                         try:
-                            news_body_head = soup.find("p").get_text()
-                            news_body_bottom = soup.find("figcaption").get_text()
-                            news_body = news_body_head + " " +news_body_bottom
+                            news_body = third_algorithm_news_body(soup=soup)
                         except:
-                            print("Use Fifth algorithm to get news body")
                             try:
-                                news_body = soup.find("p").get_text()
+                                news_body = forth_algorithm_news_body(soup=soup)
                             except:
-                                news_body = None
-                                print("Error: No such news body element")
+                                try:
+                                    news_body = fifth_algorithm_news_body(soup=soup)
+                                except:
+                                    news_body = None
+                                    print("Error: No such news body element")
 
         news.append({"judul":news_title, "tanggal":news_date, "isi":news_body})
         numbers += 1
