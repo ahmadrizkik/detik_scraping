@@ -149,7 +149,7 @@ def get_news_use_bs(links, numbers):
         soup = bs(response, "html.parser")
         # for news more than one page
         try:
-            lanjutan = soup.find(class_="btn btn--red-base btn--sm mgb-24").get_text(strip=True)
+            lanjutan = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get_text(strip=True)
             print(f"Berita ada {lanjutan}")
             news_title = algorithm_news_title(soup=soup)
             news_date = algorithm_news_date(soup=soup)
@@ -167,7 +167,7 @@ def get_news_use_bs(links, numbers):
                         print("Error: No such news body element")
             # body 2
             try:
-                link_second = soup.find(class_="btn btn--red-base btn--sm mgb-24").get("href")
+                link_second = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get("href")
                 response_second = requests.get(link_second).content
                 soup_second = bs(response_second, "html.parser")
                 try:
@@ -339,7 +339,8 @@ def news_use_keyword():
 
     time.sleep(1)
     links = get_link_use_selenium(driver=driver)
-    news, number = get_news_use_bs(links=links, numbers=number)
+    clean_links = [link for link in links if link[:4] == "http"]
+    news, number = get_news_use_bs(links=clean_links, numbers=number)
     all_news.extend(news)
 
     if end_page > 1:
@@ -347,7 +348,8 @@ def news_use_keyword():
             driver.find_element(By.LINK_TEXT, str(page)).click()
             time.sleep(1)
             links = get_link_use_selenium(driver=driver)
-            news, number = get_news_use_bs(links=links, numbers=number)
+            clean_links = [link for link in links if link[:4] == "http"]
+            news, number = get_news_use_bs(links=clean_links, numbers=number)
             all_news.extend(news)
     else:
         pass
@@ -372,7 +374,8 @@ def news_use_keyword_include_photo():
 
     time.sleep(1)
     links = get_link_use_selenium(driver=driver)
-    news, number = get_news_and_photo_using_bs(links=links, numbers=number)
+    clean_links = [link for link in links if link[:4] == "http"]
+    news, number = get_news_and_photo_using_bs(links=clean_links, numbers=number)
     all_news.extend(news)
 
     if end_page > 1:
@@ -380,7 +383,8 @@ def news_use_keyword_include_photo():
             driver.find_element(By.LINK_TEXT, str(page)).click()
             time.sleep(1)
             links = get_link_use_selenium(driver=driver)
-            news, number = get_news_and_photo_using_bs(links=links, numbers=number)
+            clean_links = [link for link in links if link[:4] == "http"]
+            news, number = get_news_and_photo_using_bs(links=clean_links, numbers=number)
             all_news.extend(news)
     else:
         pass
@@ -401,7 +405,8 @@ def news_use_tag():
 
     time.sleep(1)
     links = get_link_use_selenium(driver=driver)
-    news, numbers = get_news_use_bs(links=links, numbers=numbers)
+    clean_links = [link for link in links if link[:4] == "http"]
+    news, numbers = get_news_use_bs(links=clean_links, numbers=numbers)
     all_news.extend(news)
 
     if end_page > 1:
@@ -409,7 +414,8 @@ def news_use_tag():
             driver.find_element(By.LINK_TEXT, str(page)).click()
             time.sleep(1)
             links = get_link_use_selenium(driver=driver)
-            news, numbers = get_news_use_bs(links=links, numbers=numbers)
+            clean_links = [link for link in links if link[:4] == "http"]
+            news, numbers = get_news_use_bs(links=clean_links, numbers=numbers)
             all_news.extend(news)
     else:
         pass
@@ -430,7 +436,8 @@ def news_use_tag_include_photo():
 
     time.sleep(1)
     links = get_link_use_selenium(driver=driver)
-    news, numbers = get_news_and_photo_using_bs(links=links, numbers=numbers)
+    clean_links = [link for link in links if link[:4] == "http"]
+    news, numbers = get_news_and_photo_using_bs(links=clean_links, numbers=numbers)
     all_news.extend(news)
 
     if end_page > 1:
@@ -438,7 +445,8 @@ def news_use_tag_include_photo():
             driver.find_element(By.LINK_TEXT, str(page)).click()
             time.sleep(1)
             links = get_link_use_selenium(driver=driver)
-            news, numbers = get_news_and_photo_using_bs(links=links, numbers=numbers)
+            clean_links = [link for link in links if link[:4] == "http"]
+            news, numbers = get_news_and_photo_using_bs(links=clean_links, numbers=numbers)
             all_news.extend(news)
     else:
         pass
