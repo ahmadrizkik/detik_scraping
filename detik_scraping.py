@@ -141,7 +141,7 @@ def second_algorithm_news_body_second(soup_second, news_body):
     news_body = news_body + "\n" + "Halaman 2" +"\n" + news_body_second
     return news_body
 
-def get_news_use_bs(links, numbers):
+def get_news_use_bs(links, numbers=0):
     news = []
     for link in links:
         response = requests.get(link).content
@@ -229,7 +229,7 @@ def get_news_use_bs(links, numbers):
         print(f"News: {numbers}\n{news_title}\n")
     return news, numbers
 
-def get_news_and_photo_using_bs(links, numbers):
+def get_news_and_photo_using_bs(links, numbers=0):
     news = []
     for link in links:
         response = requests.get(link).content
@@ -237,7 +237,7 @@ def get_news_and_photo_using_bs(links, numbers):
         soup = bs(response, "html.parser")
         # for news more than one page
         try:
-            lanjutan = soup.find(class_="btn btn--red-base btn--sm mgb-24").get_text(strip=True)
+            lanjutan = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get_text(strip=True)
             print(f"Berita ada {lanjutan}")
             news_title = algorithm_news_title(soup=soup)
             news_date = algorithm_news_date(soup=soup)
@@ -255,7 +255,7 @@ def get_news_and_photo_using_bs(links, numbers):
                         print("Error: No such news body element")
             # body 2
             try:
-                link_second = soup.find(class_="btn btn--red-base btn--sm mgb-24").get("href")
+                link_second = soup.find("a", attrs={"dtr-evt":"selanjutnya"}).get("href")
                 response_second = requests.get(link_second).content
                 soup_second = bs(response_second, "html.parser")
                 try:
@@ -327,7 +327,7 @@ def get_news_and_photo_using_bs(links, numbers):
 def news_use_keyword():
     keyword = input("Looking For? ")
     end_page = int(input("Search Until Page: "))
-    number = 0
+    method_ways = int(input("1. Only News\n2. News and Photo\n"))
     all_news = []
 
     driver = webdriver.Edge()
@@ -340,42 +340,12 @@ def news_use_keyword():
     time.sleep(1)
     links = get_link_use_selenium(driver=driver)
     clean_links = [link for link in links if link[:4] == "http"]
-    news, number = get_news_use_bs(links=clean_links, numbers=number)
-    all_news.extend(news)
-
-    if end_page > 1:
-        for page in range(2, end_page+1):
-            driver.find_element(By.LINK_TEXT, str(page)).click()
-            time.sleep(1)
-            links = get_link_use_selenium(driver=driver)
-            clean_links = [link for link in links if link[:4] == "http"]
-            news, number = get_news_use_bs(links=clean_links, numbers=number)
-            all_news.extend(news)
+    if method_ways == 1:
+        news, number = get_news_use_bs(links=clean_links)
+    elif method_ways == 2:
+        news, number = get_news_and_photo_using_bs(links=clean_links)
     else:
         pass
-
-    print("Done")
-    driver.quit()
-
-    return all_news
-
-def news_use_keyword_include_photo():
-    keyword = input("Looking For? ")
-    end_page = int(input("Search Until Page: "))
-    number = 0
-    all_news = []
-
-    driver = webdriver.Edge()
-    driver.get("https://www.detik.com")
-
-    search_box = driver.find_element(By.NAME, "query")
-    search_box.send_keys(keyword)
-    search_box.send_keys(Keys.RETURN)
-
-    time.sleep(1)
-    links = get_link_use_selenium(driver=driver)
-    clean_links = [link for link in links if link[:4] == "http"]
-    news, number = get_news_and_photo_using_bs(links=clean_links, numbers=number)
     all_news.extend(news)
 
     if end_page > 1:
@@ -384,7 +354,12 @@ def news_use_keyword_include_photo():
             time.sleep(1)
             links = get_link_use_selenium(driver=driver)
             clean_links = [link for link in links if link[:4] == "http"]
-            news, number = get_news_and_photo_using_bs(links=clean_links, numbers=number)
+            if method_ways == 1:
+                news, number = get_news_use_bs(links=clean_links, numbers=number)
+            elif method_ways == 2:
+                news, number = get_news_and_photo_using_bs(links=clean_links, numbers=number)
+            else:
+                pass
             all_news.extend(news)
     else:
         pass
@@ -396,7 +371,7 @@ def news_use_keyword_include_photo():
 def news_use_tag():
     tag_name = input("Insert Tag: ")
     end_page = int(input("Search Until Page: "))
-    numbers = 0
+    method_ways = int(input("1. Only News\n2. News and Photo\n"))
     all_news = []
     link = "https://www.detik.com/tag/" + tag_name.replace(" ", "-")
 
@@ -406,7 +381,12 @@ def news_use_tag():
     time.sleep(1)
     links = get_link_use_selenium(driver=driver)
     clean_links = [link for link in links if link[:4] == "http"]
-    news, numbers = get_news_use_bs(links=clean_links, numbers=numbers)
+    if method_ways == 1:
+        news, number = get_news_use_bs(links=clean_links)
+    elif method_ways == 2:
+        news, number = get_news_and_photo_using_bs(links=clean_links)
+    else:
+        pass
     all_news.extend(news)
 
     if end_page > 1:
@@ -415,7 +395,12 @@ def news_use_tag():
             time.sleep(1)
             links = get_link_use_selenium(driver=driver)
             clean_links = [link for link in links if link[:4] == "http"]
-            news, numbers = get_news_use_bs(links=clean_links, numbers=numbers)
+            if method_ways == 1:
+                news, number = get_news_use_bs(links=clean_links, numbers=number)
+            elif method_ways == 2:
+                news, number = get_news_and_photo_using_bs(links=clean_links, numbers=number)
+            else:
+                pass
             all_news.extend(news)
     else:
         pass
@@ -424,30 +409,58 @@ def news_use_tag():
     driver.quit()
     return all_news
 
-def news_use_tag_include_photo():
-    tag_name = input("Insert Tag: ")
-    end_page = int(input("Search Until Page: "))
+def using_certain_page():
+    link = input("Insert Link: ")
+    end_page = int(input("Until Page: "))
+    method_ways = int(input("1. Only News\n2. News and Photo\n"))
+
     numbers = 0
     all_news = []
-    link = "https://www.detik.com/tag/" + tag_name.replace(" ", "-")
-
     driver = webdriver.Edge()
     driver.get(link)
 
-    time.sleep(1)
-    links = get_link_use_selenium(driver=driver)
-    clean_links = [link for link in links if link[:4] == "http"]
-    news, numbers = get_news_and_photo_using_bs(links=clean_links, numbers=numbers)
-    all_news.extend(news)
+    if method_ways == 1:
+        time.sleep(1)
+        links = get_link_use_selenium(driver=driver)
+        clean_link = [link for link in links if link[:4] == "http"]
+        news, numbers = get_news_use_bs(links=clean_link, numbers=numbers)
+        all_news.extend(news)
 
-    if end_page > 1:
-        for page in range(2, end_page+1):
-            driver.find_element(By.LINK_TEXT, str(page)).click()
-            time.sleep(1)
-            links = get_link_use_selenium(driver=driver)
-            clean_links = [link for link in links if link[:4] == "http"]
-            news, numbers = get_news_and_photo_using_bs(links=clean_links, numbers=numbers)
-            all_news.extend(news)
+        current_page = driver.find_element(By.CLASS_NAME, "paging.text_center")
+        current_page = current_page.find_element(By.CLASS_NAME, "selected").text
+        current_page = int(current_page)
+
+        if end_page > current_page:
+            for page in range(current_page+1, end_page+1):
+                driver.find_element(By.LINK_TEXT, str(page)).click()
+                time.sleep(1)
+                links = get_link_use_selenium(driver=driver)
+                clean_link = [link for link in links if link[:4] == "http"]
+                news, numbers = get_news_use_bs(links=clean_link, numbers=numbers)
+                all_news.extend(news)  
+        else:
+            pass
+    elif method_ways == 2:
+        time.sleep(1)
+        links = get_link_use_selenium(driver=driver)
+        clean_link = [link for link in links if link[:4] == "http"]
+        news, numbers = get_news_and_photo_using_bs(links=clean_link, numbers=numbers)
+        all_news.extend(news)
+
+        current_page = driver.find_element(By.CLASS_NAME, "paging.text_center")
+        current_page = current_page.find_element(By.CLASS_NAME, "selected").text
+        current_page = int(current_page)
+
+        if end_page > current_page:
+            for page in range(current_page+1, end_page+1):
+                driver.find_element(By.LINK_TEXT, str(page)).click()
+                time.sleep(1)
+                links = get_link_use_selenium(driver=driver)
+                clean_link = [link for link in links if link[:4] == "http"]
+                news, numbers = get_news_and_photo_using_bs(links=clean_link, numbers=numbers)
+                all_news.extend(news)  
+        else:
+            pass
     else:
         pass
 
